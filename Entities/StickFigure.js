@@ -68,17 +68,17 @@ StickFigureJoint.drawTo = function(ctx, state, otherJoint, otherState) {
     ctx.beginPath();
     ctx.moveTo(state.location[0], state.location[1]);
     ctx.lineTo(otherState.location[0], otherState.location[1]);
-    ctx.lineWidth = state.thickness;
+    ctx.lineWidth = state.thickness * 2;
     ctx.strokeStyle = TisfatColorToCSS(state.jointColor);
     ctx.stroke();
 
     ctx.beginPath();
-    ctx.arc(state.location[0], state.location[1], state.thickness / 2, 0, 2 * Math.PI, false);
+    ctx.arc(state.location[0], state.location[1], state.thickness, 0, 2 * Math.PI, false);
     ctx.fillStyle = TisfatColorToCSS(state.jointColor);
     ctx.fill();
 
     ctx.beginPath();
-    ctx.arc(otherState.location[0], otherState.location[1], state.thickness / 2, 0, 2 * Math.PI, false);
+    ctx.arc(otherState.location[0], otherState.location[1], state.thickness, 0, 2 * Math.PI, false);
     ctx.fill();
   }
 };
