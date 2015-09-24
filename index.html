@@ -16,7 +16,7 @@
         border: 0;
       }
 
-      span {
+      body {
         color: white;
       }
 
@@ -27,10 +27,16 @@
     </style>
   </head>
   <body>
-    <canvas id="view"></canvas>
-    <div><input id="time" type="range" min="0" max="100" step="0.00001"></input></div>
-    <div><button id="btnPlay">Play</button>&nbsp;&nbsp;&nbsp;&nbsp;<span id="text"></span>&nbsp;&nbsp;&nbsp;&nbsp;<a id="link">Download Project</a></div>
+    <noscript>The TISFAT Zero player requires JavaScript support</noscript>
+    <div id="textView" style="display:none"></div>
+    <div id="mainView" style="display:none">
+      <canvas id="view"></canvas>
+      <div><input id="time" type="range" min="0" max="100" step="0.00001"></input></div>
+      <div><button id="btnPlay">Play</button>&nbsp;&nbsp;&nbsp;&nbsp;<span id="text"></span>&nbsp;&nbsp;&nbsp;&nbsp;<a id="link">Download Project</a></div>
+    </div>
 
+    <script src="https://raw.githubusercontent.com/jakearchibald/es6-promise/master/dist/es6-promise.min.js"></script>
+    <script src="https://raw.githubusercontent.com/github/fetch/master/fetch.js"></script>
     <script src="Util/BinaryReader.js"></script>
     <script src="Util/FileFormat.js"></script>
     <script src="Util/Interpolation.js"></script>
@@ -42,6 +48,15 @@
     <script>
       (function() {
         "use strict";
+
+        if (top === self)
+          document.body.style.backgroundColor = "black";
+
+        var eTextView = document.getElementById("textView");
+        var eMainView = document.getElementById("mainView");
+
+        eTextView.style.display = "block";
+        eTextView.textContent = "Initializing player...";
 
         var eView = document.getElementById("view");
         var eTime = document.getElementById("time");
@@ -106,6 +121,9 @@
         };
 
         var onProjectLoad = function() {
+          eTextView.style.display = "none";
+          eMainView.style.display = "block";
+
           eView.width = project.width;
           eView.height = project.height;
 
@@ -132,22 +150,22 @@
           draw();
         });
 
-        var projectReq = new XMLHttpRequest();
-        projectReq.responseType = "arraybuffer";
-
-        projectReq.onload = function() {
-          var arrayBuffer = projectReq.response;
-          if (arrayBuffer && arrayBuffer.byteLength > 0) {
-            var reader = new BinaryReader(arrayBuffer, true);
-            var version = reader.ReadUInt16();
-            project = ReadProject(reader, version);
-            onProjectLoad();
-          }
-        };
-
+        eTextView.textContent = "Loading TISFAT Zero project...";
         link.href = location.search.substring(1);
-        projectReq.open("GET", link.href, true);
-        projectReq.send();
+
+        fetch(link.href).then(function(response) {
+          if (!response.ok)
+            throw new Error();
+          return response.arrayBuffer();
+        }).then(function(arrayBuffer) {
+          eTextView.textContent = "Parsing TISFAT Zero project...";
+          var reader = new BinaryReader(arrayBuffer, true);
+          var version = reader.ReadUInt16();
+          project = ReadProject(reader, version);
+          onProjectLoad();
+        }).catch(function(error) {
+          eTextView.textContent = "Failed to load TISFAT Zero project. Check for bad links, CORS support or a malformed project file.";
+        });
       })();
     </script>
   </body>
