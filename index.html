@@ -19,12 +19,17 @@
       span {
         color: white;
       }
+
+      a {
+        color: #aaaaff;
+        text-decoration: none;
+      }
     </style>
   </head>
   <body>
     <canvas id="view"></canvas>
     <div><input id="time" type="range" min="0" max="100" step="0.00001"></input></div>
-    <div><button id="btnPlay">Play</button>&nbsp;&nbsp;&nbsp;&nbsp;<span id="text"></span></div>
+    <div><button id="btnPlay">Play</button>&nbsp;&nbsp;&nbsp;&nbsp;<span id="text"></span>&nbsp;&nbsp;&nbsp;&nbsp;<a id="link">Download Project</a></div>
 
     <script src="Util/BinaryReader.js"></script>
     <script src="Util/FileFormat.js"></script>
@@ -41,6 +46,7 @@
         var eView = document.getElementById("view");
         var eTime = document.getElementById("time");
         var eText = document.getElementById("text");
+        var eLink = document.getElementById("link");
         var eBtnPlay = document.getElementById("btnPlay");
 
         var project = null;
@@ -142,7 +148,8 @@
           }
         };
 
-        projectReq.open("GET", location.search.substring(1), true);
+        link.href = location.search.substring(1);
+        projectReq.open("GET", link.href, true);
         projectReq.send();
       })();
     </script>
