@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Tisfat ZERO Viewer</title>
+  </head>
+  <body>
+    <canvas id="view" width="640" height="360"></canvas>
+    <script>
+      (function() {
+        "use strict";
+
+        var loadProject = function(buf) {
+          console.log("Got a ArrayBuffer of size " + buf.length);
+        };
+
+        var projectReq = new XMLHttpRequest();
+        projectReq.responseType = "arraybuffer";
+
+        projectReq.onload = function() {
+          var arrayBuffer = projectReq.response;
+          if (arrayBuffer) {
+            loadProject(arrayBuffer);
+          }
+        };
+
+        projectReq.open("GET", location.search.substring(1), true);
+        projectReq.send(null);
+      })();
+    </script>
+  </body>
+</html>
