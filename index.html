@@ -6,26 +6,111 @@
   </head>
   <body>
     <canvas id="view" width="640" height="360"></canvas>
+    <div><input id="time" type="range" min="0" max="100" step="0.001"></input></div>
+    <div><button id="btnPlay">Play</button></div>
+
+    <script src="Util/BinaryReader.js"></script>
+    <script src="Util/FileFormat.js"></script>
+    <script src="Util/Interpolation.js"></script>
+    <script src="Entities/StickFigure.js"></script>
+    <script src="Core/Keyframe.js"></script>
+    <script src="Core/Frameset.js"></script>
+    <script src="Core/Layer.js"></script>
+    <script src="Core/Project.js"></script>
     <script>
       (function() {
         "use strict";
 
-        var loadProject = function(buf) {
-          console.log("Got a ArrayBuffer of size " + buf.length);
+        var eView = document.getElementById("view");
+        var eTime = document.getElementById("time");
+        var eBtnPlay = document.getElementById("btnPlay");
+
+        var project = null;
+        var playActive = false;
+        var playStartFrame = null;
+        var playStartTime = null;
+
+        var playFrame = function(time) {
+          if (project === null || !playActive)
+            return;
+
+          if (playStartTime === null)
+            playStartTime = time;
+
+          var time = playStartFrame + (time - playStartTime) / 1000 * project.fps;
+          eTime.value = time;
+          draw();
+
+          if (time >= project.getEndTime()) {
+            playActive = false;
+            playStartTime = null;
+            playStartFrame = null;
+            eBtnPlay.textContent = "Play";
+          }
+
+          requestAnimationFrame(playFrame);
         };
+
+        var draw = function() {
+          if (project === null)
+            return;
+
+          var context = eView.getContext("2d");
+
+          context.fillStyle = TisfatColorToCSS(project.backgroundColor);
+          context.fillRect(0, 0, eView.width, eView.height);
+
+          project.draw(context, eTime.value);
+        };
+
+        var onProjectLoad = function() {
+          eView.width = project.width;
+          eView.height = project.height;
+          
+          eTime.max = project.getEndTime();
+          eTime.value = 0;
+          eTime.style.width = project.width + "px";
+
+          draw();
+        };
+
+        eBtnPlay.addEventListener("click", function() {
+          if (project === null)
+            return;
+
+          if (playActive) {
+            this.textContent = "Play";
+            playActive = false;
+          }
+          else {
+            this.textContent = "Pause";
+            playStartFrame = eTime.value;
+            playActive = true;
+            requestAnimationFrame(playFrame);
+          }
+        });
+
+        eTime.addEventListener("input", function() {
+          draw();
+        });
 
         var projectReq = new XMLHttpRequest();
         projectReq.responseType = "arraybuffer";
 
         projectReq.onload = function() {
           var arrayBuffer = projectReq.response;
-          if (arrayBuffer) {
-            loadProject(arrayBuffer);
+          if (arrayBuffer && arrayBuffer.byteLength > 0) {
+            var reader = new BinaryReader(arrayBuffer, true);
+            var version = reader.ReadUInt16();
+            console.log("Version:", version);
+            // var project = TisfatReadProject(reader, version);
+            project = ReadProject(reader, version);
+            onProjectLoad();
           }
         };
 
         projectReq.open("GET", location.search.substring(1), true);
-        projectReq.send(null);
+        projectReq.send();
       })();
     </script>
   </body>
