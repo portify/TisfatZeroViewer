@@ -8,12 +8,19 @@
         margin: 0;
         padding: 0;
       }
+
+      input[type="range"] {
+        margin-left: 0;
+        margin-right: 0;
+        padding: 0;
+        border: 0;
+      }
     </style>
   </head>
   <body>
     <canvas id="view"></canvas>
-    <div><input id="time" type="range" min="0" max="100" step="0.001"></input></div>
-    <div><button id="btnPlay">Play</button></div>
+    <div><input id="time" type="range" min="0" max="100" step="0.00001"></input></div>
+    <div><button id="btnPlay">Play</button>&nbsp;&nbsp;&nbsp;&nbsp;<span id="text"></span></div>
 
     <script src="Util/BinaryReader.js"></script>
     <script src="Util/FileFormat.js"></script>
@@ -29,6 +36,7 @@
 
         var eView = document.getElementById("view");
         var eTime = document.getElementById("time");
+        var eText = document.getElementById("text");
         var eBtnPlay = document.getElementById("btnPlay");
 
         var project = null;
@@ -80,6 +88,8 @@
           if (project === null)
             return;
 
+          eText.textContent = "Frame " + (Math.floor(eTime.value) + 1) + "/" + (project.getEndTime() + 1);
+
           var context = eView.getContext("2d");
 
           context.fillStyle = TisfatColorToCSS(project.backgroundColor);
@@ -107,6 +117,11 @@
         });
 
         eTime.addEventListener("input", function() {
+          if (isPlaying) {
+            playStartTime = null;
+            playStartFrame = parseFloat(eTime.value);
+          }
+
           draw();
         });
 
