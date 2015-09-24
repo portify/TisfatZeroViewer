@@ -55,11 +55,8 @@
         var playStartTime = null;
 
         var playFrame = function(time) {
-          console.log("hi");
-          if (project === null || !isPlaying) {
-            console.log("rip");
+          if (!isPlaying)
             return;
-          }
 
           if (playStartTime === null)
             playStartTime = time;
