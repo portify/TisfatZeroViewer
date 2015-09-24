@@ -164,6 +164,7 @@
           project = ReadProject(reader, version);
           onProjectLoad();
         }).catch(function(error) {
+          console.log(error);
           eTextView.textContent = "Failed to load TISFAT Zero project. Check for bad links, CORS support or a malformed project file.";
         });
       })();

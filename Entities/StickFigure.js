@@ -58,6 +58,12 @@ StickFigureJoint.drawTo = function(ctx, state, otherJoint, otherState) {
     ctx.fillStyle = TisfatColorToCSS(state.jointColor);
     ctx.fill();
   }
+  else if (this.drawType == "CircleRadius") {
+    ctx.beginPath();
+    ctx.arc(state.location[0], state.location[1], state.thickness, 0, 2 * Math.PI, false);
+    ctx.fillStyle = TisfatColorToCSS(state.jointColor);
+    ctx.fill();
+  }
   else if (this.drawType == "Normal") {
     ctx.beginPath();
     ctx.moveTo(state.location[0], state.location[1]);
