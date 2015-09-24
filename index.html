@@ -3,9 +3,15 @@
   <head>
     <meta charset="utf-8">
     <title>Tisfat ZERO Viewer</title>
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+      }
+    </style>
   </head>
   <body>
-    <canvas id="view" width="640" height="360"></canvas>
+    <canvas id="view"></canvas>
     <div><input id="time" type="range" min="0" max="100" step="0.001"></input></div>
     <div><button id="btnPlay">Play</button></div>
 
@@ -26,29 +32,48 @@
         var eBtnPlay = document.getElementById("btnPlay");
 
         var project = null;
-        var playActive = false;
+        var isPlaying = false;
         var playStartFrame = null;
         var playStartTime = null;
 
         var playFrame = function(time) {
-          if (project === null || !playActive)
+          console.log("hi");
+          if (project === null || !isPlaying) {
+            console.log("rip");
             return;
+          }
 
           if (playStartTime === null)
             playStartTime = time;
 
-          var time = playStartFrame + (time - playStartTime) / 1000 * project.fps;
-          eTime.value = time;
+          var frame = playStartFrame + (time - playStartTime) / 1000 * project.fps;
+          eTime.value = frame;
           draw();
 
-          if (time >= project.getEndTime()) {
-            playActive = false;
+          if (frame >= project.getEndTime())
+            setPlaying(false);
+          else
+            requestAnimationFrame(playFrame);
+        };
+
+        var setPlaying = function(state) {
+          if (state) {
+            if (!isPlaying)
+              requestAnimationFrame(playFrame);
+
+            isPlaying = true;
+            playStartTime = null;
+            playStartFrame = parseFloat(eTime.value);
+
+            eBtnPlay.textContent = "Pause";
+          }
+          else {
+            isPlaying = false;
             playStartTime = null;
             playStartFrame = null;
+
             eBtnPlay.textContent = "Play";
           }
-
-          requestAnimationFrame(playFrame);
         };
 
         var draw = function() {
@@ -66,7 +91,7 @@
         var onProjectLoad = function() {
           eView.width = project.width;
           eView.height = project.height;
-          
+
           eTime.max = project.getEndTime();
           eTime.value = 0;
           eTime.style.width = project.width + "px";
@@ -78,16 +103,7 @@
           if (project === null)
             return;
 
-          if (playActive) {
-            this.textContent = "Play";
-            playActive = false;
-          }
-          else {
-            this.textContent = "Pause";
-            playStartFrame = eTime.value;
-            playActive = true;
-            requestAnimationFrame(playFrame);
-          }
+          setPlaying(!isPlaying);
         });
 
         eTime.addEventListener("input", function() {
@@ -102,8 +118,6 @@
           if (arrayBuffer && arrayBuffer.byteLength > 0) {
             var reader = new BinaryReader(arrayBuffer, true);
             var version = reader.ReadUInt16();
-            console.log("Version:", version);
-            // var project = TisfatReadProject(reader, version);
             project = ReadProject(reader, version);
             onProjectLoad();
           }
