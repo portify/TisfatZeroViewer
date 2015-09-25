@@ -12,7 +12,7 @@ var ReadRectObjectState = function(reader, version) {
 var RectObject = {};
 
 RectObject.draw = function(ctx, state) {
-  ctx.fillColor = TisfatColorToCSS(state.color);
+  ctx.fillStyle = TisfatColorToCSS(state.color);
   ctx.fillRect(state.position[0], state.position[1], state.extent[0], state.extent[1]);
 };
 
