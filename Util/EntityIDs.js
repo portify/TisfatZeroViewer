@@ -3,13 +3,15 @@
 var TisfatEntityTypes = {
   "0": ReadStickFigure,
   "3": ReadLineObject,
-  "4": ReadRectObject
+  "4": ReadRectObject,
+  "5": ReadCircleObject
 };
 
 var TisfatEntityStateTypes = {
   "0": ReadStickFigureState,
   "3": ReadLineObjectState,
-  "4": ReadRectObjectState
+  "4": ReadRectObjectState,
+  "5": ReadCircleObjectState
 };
 
 var TisfatResolveEntityID = function(id) {
