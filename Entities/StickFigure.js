@@ -53,33 +53,13 @@ StickFigureJoint.drawTo = function(ctx, state, otherJoint, otherState) {
     var x = otherState.location[0] + dx / 2;
     var y = otherState.location[1] + dy / 2;
 
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, 2 * Math.PI, false);
-    ctx.fillStyle = TisfatColorToCSS(state.jointColor);
-    ctx.fill();
+    TisfatCircle(ctx, [x, y], r, state.jointColor);
   }
   else if (this.drawType == "CircleRadius") {
-    ctx.beginPath();
-    ctx.arc(state.location[0], state.location[1], state.thickness, 0, 2 * Math.PI, false);
-    ctx.fillStyle = TisfatColorToCSS(state.jointColor);
-    ctx.fill();
+    TisfatCircle(ctx, state.location, state.thickness, state.jointColor);
   }
   else if (this.drawType == "Normal") {
-    ctx.beginPath();
-    ctx.moveTo(state.location[0], state.location[1]);
-    ctx.lineTo(otherState.location[0], otherState.location[1]);
-    ctx.lineWidth = state.thickness * 2;
-    ctx.strokeStyle = TisfatColorToCSS(state.jointColor);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.arc(state.location[0], state.location[1], state.thickness, 0, 2 * Math.PI, false);
-    ctx.fillStyle = TisfatColorToCSS(state.jointColor);
-    ctx.fill();
-
-    ctx.beginPath();
-    ctx.arc(otherState.location[0], otherState.location[1], state.thickness, 0, 2 * Math.PI, false);
-    ctx.fill();
+    TisfatCappedLine(ctx, state.location, otherState.location, state.thickness, state.jointColor);
   }
 };
 
