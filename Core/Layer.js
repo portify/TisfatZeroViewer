@@ -1,16 +1,5 @@
 "use strict";
 
-var TisfatEntityTypes = {
-  "0": ReadStickFigure
-};
-
-var TisfatResolveEntityID = function(id) {
-  if (TisfatEntityTypes[id])
-    return TisfatEntityTypes[id];
-
-  throw new Error("cannot resolve entity id " + id);
-};
-
 var Layer = {};
 
 Layer.findFrameset = function(time) {

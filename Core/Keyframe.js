@@ -1,13 +1,4 @@
-var TisfatEntityStateTypes = {
-  "0": ReadStickFigureState
-};
-
-var TisfatResolveEntityStateID = function(id) {
-  if (TisfatEntityStateTypes[id])
-    return TisfatEntityStateTypes[id];
-
-  throw new Error("cannot resolve entity state id " + id);
-};
+"use strict";
 
 var Keyframe = {};
 
