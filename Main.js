@@ -1,5 +1,7 @@
 (function() {
   "use strict";
+  
+  var FILE_FORMAT_VERSION = 3;
 
   if (top === self)
     document.body.style.backgroundColor = "black";
@@ -113,6 +115,10 @@
     eTextView.textContent = "Parsing TISFAT Zero project...";
     var reader = new BinaryReader(arrayBuffer, true);
     var version = reader.ReadUInt16();
+    
+    if (version >= FILE_FORMAT_VERSION)
+      throw new Error("what is this newfound technology (" + version + " file vs " + FILE_FORMAT_VERSION + " player)");
+
     project = ReadProject(reader, version);
     onProjectLoad();
   }).catch(function(error) {
