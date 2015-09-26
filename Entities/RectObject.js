@@ -4,8 +4,10 @@ var ReadRectObjectState = function(reader, version) {
   var state = Object.create(RectObjectState);
   state.position = TisfatReadPointF(reader, version);
   state.extent = TisfatReadPointF(reader, version);
-  // state.color = TisfatReadColor(reader, version);
-  state.color = [0, 0, 0, 255];
+  if (version >= 3)
+    state.color = TisfatReadColor(reader, version);
+  else
+    state.color = [0, 0, 0, 255];
   return state;
 };
 
