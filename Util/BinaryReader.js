@@ -47,7 +47,7 @@ BinaryReader.prototype.ReadDouble = function() {
   return value;
 };
 
-BinaryReader.Read7BitEncodedInt = function() {
+BinaryReader.prototype.Read7BitEncodedInt = function() {
     // Read out an Int32 7 bits at a time.  The high bit
     // of the byte when on means to continue reading more bytes.
     var count = 0;
