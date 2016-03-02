@@ -1,4 +1,6 @@
-var Interpolate = function(t, a, b, mode) {
+"use strict";
+
+export function Interpolate(t, a, b, mode) {
   switch (mode) {
   case "None": return t < 1 ? a : b;
   case "Linear": return a + (b - a) * t;
@@ -38,6 +40,7 @@ var Interpolate = function(t, a, b, mode) {
       t -= 2.625 / 2.75;
       return b * (7.5625 * t * t + 0.984375) + a;
     }
+    break; // thanks JSHint
   case "BackOut":
     b -= a;
     // ew
@@ -45,17 +48,17 @@ var Interpolate = function(t, a, b, mode) {
   default:
     throw new Error("unknown interpMode " + mode);
   }
-};
+}
 
-var InterpolatePointF = function(t, a, b, mode) {
+export function InterpolatePointF(t, a, b, mode) {
   return [Interpolate(t, a[0], b[0], mode), Interpolate(t, a[1], b[1], mode)];
-};
+}
 
-var InterpolateColor = function(t, a, b, mode) {
+export function InterpolateColor(t, a, b, mode) {
   return [
     Interpolate(t, a[0], b[0], mode),
     Interpolate(t, a[1], b[1], mode),
     Interpolate(t, a[2], b[2], mode),
     Interpolate(t, a[3], b[3], mode)
   ];
-};
+}

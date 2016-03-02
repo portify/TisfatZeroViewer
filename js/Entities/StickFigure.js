@@ -1,3 +1,42 @@
+StickFigure.interpolate = function(t, current, target, mode) {
+  var state = Object.create(StickFigureJointState);
+  state.root = StickFigureJointState.interpolate(t, current.root, target.root, mode);
+  return state;
+};
+
+export class StickFigure {
+  static read(reader, version) {
+    const figure = new StickFigure();
+    figure.root = StickFigureJoint.read(reader, version);
+    return figure;
+  }
+
+  draw(ctx, state) {
+    this.root.draw(ctx, state.root);
+  }
+
+  interpolate(t, current, target, mode) {
+    const state = new StickFigureState();
+    state.root = StickFigureJointState.Interpolate(t, current.root, target.root, mode);
+    return state;
+  }
+}
+
+export class StickFigureState {
+  static read(reader, version) {
+    const state = new StickFigureState();
+    state.root = StickFigureJointState.read(reader, version);
+    return state;
+  }
+}
+
+
+
+
+
+
+
+
 var StickFigureJointState = {};
 
 StickFigureJointState.interpolate = function(t, current, target, mode) {
@@ -99,22 +138,4 @@ var ReadStickFigureState = function(reader, version) {
   var state = Object.create(StickFigureState);
   state.root = ReadStickFigureJointState(reader, version);
   return state;
-};
-
-var StickFigure = {};
-
-StickFigure.draw = function(ctx, state) {
-  this.root.draw(ctx, state.root);
-};
-
-StickFigure.interpolate = function(t, current, target, mode) {
-  var state = Object.create(StickFigureJointState);
-  state.root = StickFigureJointState.interpolate(t, current.root, target.root, mode);
-  return state;
-};
-
-var ReadStickFigure = function(reader, version) {
-  var figure = Object.create(StickFigure);
-  figure.root = ReadStickFigureJoint(reader, version);
-  return figure;
 };

@@ -4,9 +4,8 @@
     <meta charset="utf-8">
     <title>Tisfat ZERO Viewer</title>
     <style>
-      html, body {
+      body {
         margin: 0;
-        padding: 0;
       }
 
       input[type="range"] {
@@ -28,16 +27,17 @@
   </head>
   <body>
     <noscript>The TISFAT Zero player requires JavaScript support</noscript>
-    <div id="textView" style="display:none"></div>
-    <div id="mainView" style="display:none">
+    <div id="text-view" style="display:none"></div>
+    <div id="main-view" style="display:none">
       <canvas id="view"></canvas>
       <div><input id="time" type="range" min="0" max="100" step="0.00001"></input></div>
-      <div><button id="btnPlay">Play</button>&nbsp;&nbsp;&nbsp;&nbsp;<span id="text"></span>&nbsp;&nbsp;&nbsp;&nbsp;<a id="link">Download Project</a></div>
+      <div><button id="btn-play">Play</button>&nbsp;&nbsp;&nbsp;&nbsp;<span id="text"></span>&nbsp;&nbsp;&nbsp;&nbsp;<a id="link">Download Project</a></div>
     </div>
 
-    <script src="https://raw.githubusercontent.com/jakearchibald/es6-promise/master/dist/es6-promise.min.js"></script>
-    <script src="https://raw.githubusercontent.com/github/fetch/master/fetch.js"></script>
-    <script src="Util/BinaryReader.js"></script>
+    <script src="https://rawgit.com/jakearchibald/es6-promise/master/dist/es6-promise.min.js"></script>
+    <script src="https://rawgit.com/github/fetch/master/fetch.js"></script>
+    <script src="build/bundle.js"></script>
+    <!-- <script src="Util/BinaryReader.js"></script>
     <script src="Util/FileFormat.js"></script>
     <script src="Util/Interpolation.js"></script>
     <script src="Util/Drawing.js"></script>
@@ -50,6 +50,6 @@
     <script src="Core/Frameset.js"></script>
     <script src="Core/Layer.js"></script>
     <script src="Core/Project.js"></script>
-    <script src="Main.js"></script></script>
+    <script src="Main.js"></script> -->
   </body>
 </html>
