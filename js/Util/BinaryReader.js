@@ -1,5 +1,9 @@
 "use strict";
 
+import ExtendableError from "./ExtendableError.js";
+
+export class DataFormatError extends ExtendableError { }
+
 export default class BinaryReader {
   constructor(arrayBuffer, littleEndian) {
     this.arrayBuffer = arrayBuffer;
@@ -58,7 +62,7 @@ export default class BinaryReader {
           // Check for a corrupted stream.  Read a max of 5 bytes.
           // In a future version, add a DataFormatException.
           if (shift == 5 * 7)  // 5 bytes max per Int32, shift += 7
-              throw new Error("Format_Bad7BitInt32");
+              throw new DataFormatError("Bad 7-bit encoded Int32");
 
           // ReadByte handles end of stream cases for us.
           b = this.ReadByte();

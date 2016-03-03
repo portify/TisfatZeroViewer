@@ -14,7 +14,7 @@ export default class Layer {
   }
 
   static read(reader, version) {
-    const layer = Object.create(Layer);
+    const layer = new Layer();
     layer.name = reader.ReadString();
     layer.visible = reader.ReadBoolean();
     layer.timelineColor = TisfatReadColor(reader, version);

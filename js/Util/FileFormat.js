@@ -2,7 +2,7 @@
 
 // not the right place for this
 export function TisfatColorToCSS(color) {
-  const [r, g, b, a] = color;
+  const [a, r, g, b] = color;
   return `rgba(${r},${g},${b},${a/255})`;
 }
 
@@ -22,7 +22,7 @@ export function TisfatReadColor(reader, version) {
   const r = reader.ReadByte();
   const g = reader.ReadByte();
   const b = reader.ReadByte();
-  return [r, g, b, a];
+  return [a, r, g, b];
 }
 
 export function TisfatReadBitmap(reader) {

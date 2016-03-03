@@ -1,8 +1,57 @@
-StickFigure.interpolate = function(t, current, target, mode) {
-  var state = Object.create(StickFigureJointState);
-  state.root = StickFigureJointState.interpolate(t, current.root, target.root, mode);
-  return state;
-};
+"use strict";
+
+import {TisfatReadPointF, TisfatReadColor, TisfatReadList, TisfatReadBitmap} from "../Util/FileFormat.js";
+import {TisfatCircle, TisfatCappedLine} from "../Util/Drawing.js";
+import {Interpolate, InterpolateColor, InterpolatePointF} from "../Util/Interpolation.js";
+
+export class StickFigureJointState {
+  constructor() {
+    this.parent = null;
+    this.children = [];
+    this.location = [0, 0];
+    this.jointColor = [255, 0, 0, 0];
+    this.thickness = 6;
+    this.bitmapIndex = -1;
+    this.manipulatable = true;
+  }
+
+  static read(reader, version) {
+    const state = new StickFigureJointState();
+    state.location = TisfatReadPointF(reader, version);
+    state.jointColor = TisfatReadColor(reader, version);
+    state.thickness = reader.ReadDouble();
+
+    if (version >= 2) {
+      state.manipulatable = reader.ReadBoolean();
+
+      if (version >= 4)
+        state.bitmapIndex = reader.ReadInt32();
+    }
+
+    state.children = TisfatReadList(reader, version, StickFigureJointState.read);
+
+    for (let child of state.children)
+      child.parent = state;
+
+    return state;
+  }
+
+  static interpolate(t, current, target, mode) {
+    const state = new StickFigureJointState();
+    state.parent = current.parent;
+    state.bitmapIndex = current.bitmapIndex;
+
+    state.location = InterpolatePointF(t, current.location, target.location, mode);
+    state.jointColor = InterpolateColor(t, current.jointColor, target.jointColor, mode);
+    state.thickness = Interpolate(t, current.thickness, target.thickness, mode);
+
+    for (var i = 0; i < current.children.length; i++) {
+      state.children.push(StickFigureJointState.interpolate(t, current.children[i], target.children[i], mode));
+    }
+
+    return state;
+  }
+}
 
 export class StickFigure {
   static read(reader, version) {
@@ -17,7 +66,7 @@ export class StickFigure {
 
   interpolate(t, current, target, mode) {
     const state = new StickFigureState();
-    state.root = StickFigureJointState.Interpolate(t, current.root, target.root, mode);
+    state.root = StickFigureJointState.interpolate(t, current.root, target.root, mode);
     return state;
   }
 }
@@ -30,112 +79,99 @@ export class StickFigureState {
   }
 }
 
+export class StickFigureJoint {
+  constructor() {
+    this.parent = null;
+    this.children = [];
+    this.jointColor = [255, 0, 0, 0];
+    this.handleColor = [255, 0, 0, 255];
+    this.thickness = 6;
 
+    // this.bitmaps = [];
+    // this.bitmapOffsets = new Map();
+    this.initialBitmapIndex = -1;
 
-
-
-
-
-
-var StickFigureJointState = {};
-
-StickFigureJointState.interpolate = function(t, current, target, mode) {
-  var state = Object.create(StickFigureJointState);
-  state.parent = this.parent;
-  state.location = InterpolatePointF(t, current.location, target.location, mode);
-  state.jointColor = InterpolateColor(t, current.jointColor, target.jointColor, mode);
-  state.thickness = Interpolate(t, current.thickness, target.thickness, mode);
-  state.children = [];
-
-  for (var i = 0; i < current.children.length; i++) {
-    state.children.push(StickFigureJointState.interpolate(t, current.children[i], target.children[i], mode));
+    this.handleVisible = true;
+    this.visible = true;
+    this.manipulatable = true;
   }
 
-  return state;
-};
+  static read(reader, version) {
+    const joint = new StickFigureJoint();
+    joint.parent = null;
 
-var ReadStickFigureJointState = function(reader, version) {
-  var state = Object.create(StickFigureJointState);
-  state.location = TisfatReadPointF(reader, version);
-  state.jointColor = TisfatReadColor(reader, version);
-  state.thickness = reader.ReadDouble();
-  state.manipulatable = version >= 2 ? reader.ReadBoolean() : true;
-  state.children = TisfatReadList(reader, version, ReadStickFigureJointState);
+    joint.location = TisfatReadPointF(reader, version);
+    joint.jointColor = TisfatReadColor(reader, version);
+    joint.handleColor = TisfatReadColor(reader, version);
+    joint.thickness = reader.ReadDouble();
 
-  for (var i = 0; i < state.children.length; i++)
-    state.children[i].parent = state;
+    if (version >= 2) {
+      joint.drawType = reader.ReadString();
+      joint.handleVisible = reader.ReadBoolean();
+      joint.manipulatable = reader.ReadBoolean();
+      joint.visible = reader.ReadBoolean();
+    } else {
+      joint.drawType = reader.ReadBoolean() ? "CircleLine" : "Normal";
+    }
 
-  return state;
-};
+    joint.children = TisfatReadList(reader, version, StickFigureJoint.read);
 
-var StickFigureJoint = {};
+    for (let child of joint.children)
+      child.parent = joint;
 
-StickFigureJoint.draw = function(ctx, state) {
-  if (this.children.count != state.children.count)
-    throw new Error("state does not match this joint");
+    if (version >= 4) {
+      const names = TisfatReadList(reader, version, r => r.ReadString());
+      const images = TisfatReadList(reader, version, TisfatReadBitmap);
+      const rotations = TisfatReadList(reader, version, r => r.ReadDouble());
+      const offsets = TisfatReadList(reader, version, TisfatReadPointF);
 
-  for (var i = 0; i < this.children.length; i++) {
-    this.children[i].drawTo(ctx, state.children[i], this, state);
-    this.children[i].draw(ctx, state.children[i]);
-  }
-};
+      // this.bitmaps = [];
+      // this.bitmapOffsets = new Map();
 
-StickFigureJoint.drawTo = function(ctx, state, otherJoint, otherState) {
-  if (!this.visible)
-    return;
+      for (let i = 0; i < names.length; i++) {
+        // this.bitmaps.append(); // ???
+        // ???
+      }
 
-  if (this.drawType == "CircleLine") {
-    var dx = state.location[0] - otherState.location[0];
-    var dy = state.location[1] - otherState.location[1];
-    var r = Math.sqrt(dx * dx + dy * dy) / 2;
+      this.initialBitmapIndex = reader.ReadInt32();
+    }
 
-    var x = otherState.location[0] + dx / 2;
-    var y = otherState.location[1] + dy / 2;
-
-    TisfatCircle(ctx, [x, y], r, state.jointColor);
-  }
-  else if (this.drawType == "CircleRadius") {
-    TisfatCircle(ctx, state.location, state.thickness, state.jointColor);
-  }
-  else if (this.drawType == "Normal") {
-    TisfatCappedLine(ctx, state.location, otherState.location, state.thickness, state.jointColor);
-  }
-};
-
-var ReadStickFigureJoint = function(reader, version) {
-  var joint = Object.create(StickFigureJoint);
-  joint.parent = null;
-
-  joint.location = TisfatReadPointF(reader, version);
-  joint.jointColor = TisfatReadColor(reader, version);
-  joint.handleColor = TisfatReadColor(reader, version);
-  joint.thickness = reader.ReadDouble();
-
-  if (version >= 2) {
-    joint.drawType = reader.ReadString();
-    joint.handleVisible = reader.ReadBoolean();
-    joint.manipulatable = reader.ReadBoolean();
-    joint.visible = reader.ReadBoolean();
-  }
-  else {
-    joint.drawType = reader.ReadBoolean() ? "CircleLine" : "Normal";
-    joint.handleVisible = true;
-    joint.manipulatable = true;
-    joint.visible = true;
+    return joint;
   }
 
-  joint.children = TisfatReadList(reader, version, ReadStickFigureJoint);
+  draw(ctx, state) {
+    if (this.children.count != state.children.count)
+      throw new Error("state does not match this joint");
 
-  for (var i = 0; i < joint.children.length; i++)
-    joint.children[i].parent = joint;
+    for (let i = 0; i < this.children.length; i++) {
+      this.children[i].drawTo(ctx, state.children[i], this, state);
+      this.children[i].draw(ctx, state.children[i]);
+    }
+  }
 
-  return joint;
-};
+  drawTo(ctx, state, otherJoint, otherState) {
+    if (!this.visible)
+      return;
 
-var StickFigureState = {};
+    switch (this.drawType) {
+    case "CircleLine":
+      const dx = state.location[0] - otherState.location[0];
+      const dy = state.location[1] - otherState.location[1];
+      const r = Math.sqrt(dx * dx + dy * dy) / 2;
 
-var ReadStickFigureState = function(reader, version) {
-  var state = Object.create(StickFigureState);
-  state.root = ReadStickFigureJointState(reader, version);
-  return state;
-};
+      const x = otherState.location[0] + dx / 2;
+      const y = otherState.location[1] + dy / 2;
+
+      TisfatCircle(ctx, [x, y], r, state.jointColor);
+      break;
+    case "CircleRadius":
+      TisfatCircle(ctx, state.location, state.thickness, state.jointColor);
+      break;
+    case "Normal":
+      TisfatCappedLine(ctx, state.location, otherState.location, state.thickness, state.jointColor);
+      break;
+    default:
+      throw new Error(`unknown joint drawing type ${this.drawType}`);
+    }
+  }
+}

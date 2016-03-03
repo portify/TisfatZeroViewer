@@ -1,29 +1,35 @@
-var LineObjectState = {};
+"use strict";
 
-var ReadLineObjectState = function(reader, version) {
-  var state = Object.create(LineObjectState);
-  state.a = TisfatReadPointF(reader, version);
-  state.b = TisfatReadPointF(reader, version);
-  state.color = TisfatReadColor(reader, version);
-  state.thickness = reader.ReadDouble();
-  return state;
-};
+import {TisfatCappedLine} from "../Util/Drawing.js";
+import {TisfatReadPointF, TisfatReadColor} from "../Util/FileFormat.js";
+import {Interpolate, InterpolatePointF, InterpolateColor} from "../Util/Interpolation.js";
 
-var LineObject = {};
+export class LineObject {
+  static read() {
+    return new LineObject();
+  }
 
-LineObject.draw = function(ctx, state) {
-  TisfatCappedLine(ctx, state.a, state.b, state.thickness, state.color);
-};
+  draw(ctx, state) {
+    TisfatCappedLine(ctx, state.a, state.b, state.thickness, state.color);
+  }
 
-LineObject.interpolate = function(t, current, target, mode) {
-  var state = Object.create(LineObjectState);
-  state.a = InterpolatePointF(t, current.a, target.a, mode);
-  state.b = InterpolatePointF(t, current.b, target.b, mode);
-  state.color = InterpolateColor(t, current.color, target.color, mode);
-  state.thickness = Interpolate(t, current.thickness, target.thickness, mode);
-  return state;
-};
+  interpolate(t, current, target, mode) {
+    const state = new LineObjectState();
+    state.a = InterpolatePointF(t, current.a, target.a, mode);
+    state.b = InterpolatePointF(t, current.b, target.b, mode);
+    state.color = InterpolateColor(t, current.color, target.color, mode);
+    state.thickness = Interpolate(t, current.thickness, target.thickness, mode);
+    return state;
+  }
+}
 
-var ReadLineObject = function(reader, version) {
-  return Object.create(LineObject);
-};
+export class LineObjectState {
+  static read(reader, version) {
+    const state = new LineObjectState();
+    state.a = TisfatReadPointF(reader, version);
+    state.b = TisfatReadPointF(reader, version);
+    state.color = TisfatReadColor(reader, version);
+    state.thickness = reader.ReadDouble();
+    return state;
+  }
+}

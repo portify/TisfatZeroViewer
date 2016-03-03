@@ -1,31 +1,33 @@
-var RectObjectState = {};
+"use strict";
 
-var ReadRectObjectState = function(reader, version) {
-  var state = Object.create(RectObjectState);
-  state.position = TisfatReadPointF(reader, version);
-  state.extent = TisfatReadPointF(reader, version);
-  if (version >= 3)
-    state.color = TisfatReadColor(reader, version);
-  else
-    state.color = [0, 0, 0, 255];
-  return state;
-};
+import {TisfatColorToCSS, TisfatReadPointF, TisfatReadColor} from "../Util/FileFormat.js";
+import {InterpolatePointF, InterpolateColor} from "../Util/Interpolation.js";
 
-var RectObject = {};
+export class RectObject {
+  static read() {
+    return new RectObject();
+  }
 
-RectObject.draw = function(ctx, state) {
-  ctx.fillStyle = TisfatColorToCSS(state.color);
-  ctx.fillRect(state.position[0], state.position[1], state.extent[0], state.extent[1]);
-};
+  draw(ctx, state) {
+    ctx.fillStyle = TisfatColorToCSS(state.color);
+    ctx.fillRect(state.position[0], state.position[1], state.extent[0], state.extent[1]);
+  }
 
-RectObject.interpolate = function(t, current, target, mode) {
-  var state = Object.create(RectObjectState);
-  state.position = InterpolatePointF(t, current.position, target.position, mode);
-  state.extent = InterpolatePointF(t, current.extent, target.extent, mode);
-  state.color = InterpolateColor(t, current.color, target.color, mode);
-  return state;
-};
+  interpolate(t, current, target, mode) {
+    const state = new RectObjectState();
+    state.position = InterpolatePointF(t, current.position, target.position, mode);
+    state.extent = InterpolatePointF(t, current.extent, target.extent, mode);
+    state.color = InterpolateColor(t, current.color, target.color, mode);
+    return state;
+  }
+}
 
-var ReadRectObject = function(reader, version) {
-  return Object.create(RectObject);
-};
+export class RectObjectState {
+  static read(reader, version) {
+    const state = new RectObjectState();
+    state.position = TisfatReadPointF(reader, version);
+    state.extent = TisfatReadPointF(reader, version);
+    state.color = version >= 3 ? TisfatReadColor(reader, version) : [255, 0, 0, 0];
+    return state;
+  }
+}

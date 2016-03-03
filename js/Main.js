@@ -1,3 +1,5 @@
+/* global self */
+
 "use strict";
 
 import {TisfatColorToCSS} from "./Util/FileFormat.js";
@@ -26,14 +28,21 @@ var isPlaying = false;
 var playStartFrame = null;
 var playStartTime = null;
 
-var playFrame = function(time) {
+function playFrame(time) {
   if (!isPlaying)
     return;
 
   if (playStartTime === null)
     playStartTime = time;
 
-  var frame = playStartFrame + (time - playStartTime) / 1000 * project.fps;
+  // const frame = playStartFrame + (time - playStartTime) / 1000 * project.fps;
+  let frame;
+  frame = (time - playStartTime) / 1000;
+  let x = 1.0 / project.fps;
+  frame = Math.floor(frame / x) * x; // this seems inefficient
+  frame *= project.animSpeed;
+  frame += playStartFrame;
+
   eTime.value = frame;
   draw();
 
@@ -41,9 +50,9 @@ var playFrame = function(time) {
     setPlaying(false);
   else
     requestAnimationFrame(playFrame);
-};
+}
 
-var setPlaying = function(state) {
+function setPlaying(state) {
   if (state) {
     if (!isPlaying)
       requestAnimationFrame(playFrame);
@@ -61,9 +70,9 @@ var setPlaying = function(state) {
 
     eBtnPlay.textContent = "Play";
   }
-};
+}
 
-var draw = function() {
+function draw() {
   if (project === null)
     return;
 
@@ -74,10 +83,17 @@ var draw = function() {
   context.fillStyle = TisfatColorToCSS(project.backgroundColor);
   context.fillRect(0, 0, eView.width, eView.height);
 
-  project.draw(context, eTime.value);
-};
+  context.save();
 
-var onProjectLoad = function() {
+  const cameraLayer = project.layers[0];
+  const cameraState = cameraLayer.findCurrentState(eTime.value);
+  cameraLayer.data.transform(context, cameraState);
+
+  project.draw(context, eTime.value);
+  context.restore();
+}
+
+function onProjectLoad() {
   eTextView.style.display = "none";
   eMainView.style.display = "block";
 
@@ -89,16 +105,16 @@ var onProjectLoad = function() {
   eTime.style.width = project.width + "px";
 
   draw();
-};
+}
 
-eBtnPlay.addEventListener("click", function() {
+eBtnPlay.addEventListener("click", () => {
   if (project === null)
     return;
 
   setPlaying(!isPlaying);
 });
 
-eTime.addEventListener("input", function() {
+eTime.addEventListener("input", () => {
   if (isPlaying) {
     playStartTime = null;
     playStartFrame = parseFloat(eTime.value);
@@ -110,21 +126,41 @@ eTime.addEventListener("input", function() {
 eTextView.textContent = "Loading TISFAT Zero project...";
 eLink.href = location.search.substring(1);
 
-fetch(eLink.href).then(function(response) {
+class BadVersionError {
+  constructor(version, maxSupported) {
+    this.version = version;
+    this.maxSupported = maxSupported;
+  }
+}
+
+class HTTPError { }
+
+fetch(eLink.href).then(response => {
   if (!response.ok)
-    throw new Error();
+    throw new HTTPError();
+
   return response.arrayBuffer();
-}).then(function(arrayBuffer) {
+}).then(arrayBuffer => {
   eTextView.textContent = "Parsing TISFAT Zero project...";
   var reader = new BinaryReader(arrayBuffer, true);
   var version = reader.ReadUInt16();
 
   if (version > FILE_FORMAT_VERSION)
-    throw new Error("what is this newfound technology (" + version + " file vs " + FILE_FORMAT_VERSION + " player)");
+    throw new BadVersionError(version, FILE_FORMAT_VERSION);
 
   project = Project.read(reader, version);
   onProjectLoad();
-}).catch(function(error) {
-  console.log(error);
-  eTextView.textContent = "Failed to load TISFAT Zero project. Check for bad links, CORS support or a malformed project file. " + error;
+}).catch(error => {
+  console.error(error);
+  console.log(error.stack);
+
+  if (error instanceof HTTPError) {
+    eTextView.textContent = `Failed to fetch the project file from '${eLink.href}'.
+                             Check for bad links or CORS support.`;
+  } else if (error instanceof BadVersionError) {
+    eTextView.textContent = `Failed to parse the project (file format version ${error.version},
+                             this viewer only supports up to version ${error.maxSupported})`;
+  } else {
+    eTextView.textContent = "Something unhandled went wrong while trying to load the project. " + error;
+  }
 });

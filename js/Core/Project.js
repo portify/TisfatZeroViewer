@@ -10,7 +10,7 @@ export default class Project {
     this.fps = 60.0;
     this.width = 460;
     this.height = 360;
-    this.backgroundColor = "white";
+    this.backgroundColor = [255, 255, 255, 255];
   }
 
   static read(reader, version) {
