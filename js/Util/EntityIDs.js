@@ -6,7 +6,7 @@ import {StickFigure, StickFigureState} from "../Entities/StickFigure.js";
 import {LineObject, LineObjectState} from "../Entities/LineObject.js";
 import {RectObject, RectObjectState} from "../Entities/RectObject.js";
 import {CircleObject, CircleObjectState} from "../Entities/CircleObject.js";
-import {PolyObject, PolyObjectState} from "../Entitites/PolyObject.js";
+import {PolyObject, PolyObjectState} from "../Entities/PolyObject.js";
 import {TextObject, TextObjectState} from "../Entities/TextObject.js";
 // import {CustomFigure, CustomFigureState} from "../Entities/CustomFigure.js";
 import {Camera, CameraState} from "../Entities/Camera.js";
