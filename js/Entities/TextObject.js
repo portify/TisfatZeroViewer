@@ -34,7 +34,7 @@ export class TextObject {
     ctx.font = state.textFont;
     ctx.fillStyle = TisfatColorToCSS(state.textColor);
     ctx.textAlign = TextAlignmentMap[state.textAlignment];
-    ctx.textBaseline = "top";
+    ctx.textBaseline = TextBaselineMap[state.textAlignment];
     // TODO: take into account state.size!
     ctx.fillText(state.text, state.location, state.location);
   }
