@@ -3,6 +3,16 @@
 import {TisfatReadPointF} from "../Util/FileFormat.js";
 import {Interpolate, InterpolatePointF} from "../Util/Interpolation.js";
 
+export class CameraState {
+  static read(reader, version) {
+    const state = new CameraState();
+    state.location = TisfatReadPointF(reader, version);
+    state.scale = reader.ReadDouble();
+    state.angle = reader.ReadDouble();
+    return state;
+  }
+}
+
 export class Camera {
   static read() {
     return new Camera();
@@ -26,12 +36,12 @@ export class Camera {
     ctx.scale(inv, inv);
     ctx.rotate(state.angle);
   }
-}
 
-export class CameraState {
-  static read(reader, version) {
-    this.location = TisfatReadPointF(reader, version);
-    this.scale = reader.ReadDouble();
-    this.angle = reader.ReadDouble();
+  createRefState() {
+    const state = new CameraState();
+    state.location = [0, 0];
+    state.scale = 1;
+    state.angle = 0;
+    return state;
   }
 }

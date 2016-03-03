@@ -28,7 +28,17 @@ export function TisfatReadColor(reader, version) {
 export function TisfatReadBitmap(reader) {
   const bytes = reader.ReadInt32();
   const buffer = reader.Read(bytes);
-  return "???";
+
+  const blob = new Blob([buffer], {type: "image/png"});
+
+  const domURL = window.URL || window.webkitURL || window;
+  const url = domURL.createObjectURL(blob);
+  const img = new Image();
+
+  img.onload = () => domURL.revokeObjectURL(url);
+  img.src = url;
+
+  return img;
 }
 
 export function TisfatReadPointF(reader) {

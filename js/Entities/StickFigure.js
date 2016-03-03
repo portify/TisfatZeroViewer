@@ -133,7 +133,7 @@ export class StickFigureJoint {
         // ???
       }
 
-      this.initialBitmapIndex = reader.ReadInt32();
+      joint.initialBitmapIndex = reader.ReadInt32();
     }
 
     return joint;

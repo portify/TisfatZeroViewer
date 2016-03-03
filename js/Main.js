@@ -6,7 +6,7 @@ import {TisfatColorToCSS} from "./Util/FileFormat.js";
 import BinaryReader from "./Util/BinaryReader.js";
 import Project from "./Core/Project.js";
 
-var FILE_FORMAT_VERSION = 6;
+var FILE_FORMAT_VERSION = 7;
 
 if (top === self)
   document.body.style.backgroundColor = "black";
@@ -56,6 +56,9 @@ function setPlaying(state) {
   if (state) {
     if (!isPlaying)
       requestAnimationFrame(playFrame);
+
+    if (eTime.value >= project.getEndTime())
+      eTime.value = 0;
 
     isPlaying = true;
     playStartTime = null;

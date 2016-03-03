@@ -1,6 +1,9 @@
 "use strict";
 
 import Layer from "./Layer.js";
+import Frameset from "./Frameset.js";
+import Keyframe from "./Keyframe.js";
+import {Camera} from "../Entities/Camera.js";
 import {TisfatReadList, TisfatReadColor} from "../Util/FileFormat.js";
 
 export default class Project {
@@ -15,9 +18,12 @@ export default class Project {
 
   static read(reader, version) {
     const project = new Project();
+
     project.layers = TisfatReadList(reader, version, Layer.read);
+    console.log(project.layers.map(l => l.name));
 
     if (version < 6) {
+      project.layers.unshift(project.createCameraLayer());
       /* Camera camera = new Camera();
       Layers.Insert(0, camera.CreateDefaultLayer(0, (uint)Program.MainTimeline.GetLastTime(), null)); */
     }
@@ -53,5 +59,21 @@ export default class Project {
     }
 
     return endTime;
+  }
+
+  createCameraLayer() {
+    const camera = new Camera();
+    const layer = new Layer();
+    const frameset = new Frameset();
+
+    layer.name = "Camera";
+    layer.timelineColor = [255, 70, 120, 255];
+    layer.data = camera;
+
+    frameset.keyframes.push(new Keyframe(0, camera.createRefState()));
+    frameset.keyframes.push(new Keyframe(this.getEndTime(), camera.createRefState()));
+    layer.framesets.push(frameset);
+
+    return layer;
   }
 }

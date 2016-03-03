@@ -9,6 +9,7 @@ export default class Layer {
     this.name = "Layer";
     this.visible = true;
     this.timelineColor = "aliceblue";
+    this.data = null;
     this.framesets = [];
     this.depth = 0;
   }

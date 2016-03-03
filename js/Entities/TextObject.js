@@ -1,6 +1,6 @@
 "use strict";
 
-import {TisfatColorToCSS, TisfatReadPointF} from "../Util/FileFormat.js";
+import {TisfatColorToCSS, TisfatReadPointF, TisfatReadColor} from "../Util/FileFormat.js";
 import {InterpolateColor, InterpolatePointF} from "../Util/Interpolation.js";
 
 // TODO: handle .NET FontStyle [Flags] enum
@@ -64,6 +64,10 @@ export class TextObjectState {
     const fontSize = reader.ReadDouble();
     const fontStyle = reader.ReadString(); // ReadInt32
     state.textFont = `${FontStyleMap[fontStyle]} ${fontSize}px ${fontName}`;
+    if (version > 7)
+      state.textColor = TisfatReadColor(reader, version);
+    else
+      state.textColor = [255, 0, 0, 0];
     return state;
   }
 }

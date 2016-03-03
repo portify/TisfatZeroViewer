@@ -3,10 +3,10 @@
 import {TisfatResolveEntityStateID} from "../Util/EntityIDs.js";
 
 export default class Keyframe {
-  constructor() {
-    this.time = 0;
-    this.state = null;
-    this.interpMode = "Linear";
+  constructor(time=0, state=null, interpMode="Linear") {
+    this.time = time;
+    this.state = state;
+    this.interpMode = interpMode;
   }
 
   static read(reader, version) {

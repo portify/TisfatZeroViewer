@@ -62,7 +62,7 @@
 	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
-	var FILE_FORMAT_VERSION = 6;
+	var FILE_FORMAT_VERSION = 7;
 	
 	if (top === self) document.body.style.backgroundColor = "black";
 	
@@ -105,6 +105,8 @@
 	function setPlaying(state) {
 	  if (state) {
 	    if (!isPlaying) requestAnimationFrame(playFrame);
+	
+	    if (eTime.value >= project.getEndTime()) eTime.value = 0;
 	
 	    isPlaying = true;
 	    playStartTime = null;
@@ -262,7 +264,19 @@
 	function TisfatReadBitmap(reader) {
 	  var bytes = reader.ReadInt32();
 	  var buffer = reader.Read(bytes);
-	  return "???";
+	
+	  var blob = new Blob([buffer], { type: "image/png" });
+	
+	  var domURL = window.URL || window.webkitURL || window;
+	  var url = domURL.createObjectURL(blob);
+	  var img = new Image();
+	
+	  img.onload = function () {
+	    return domURL.revokeObjectURL(url);
+	  };
+	  img.src = url;
+	
+	  return img;
 	}
 	
 	function TisfatReadPointF(reader) {
@@ -461,6 +475,16 @@
 	
 	var _Layer2 = _interopRequireDefault(_Layer);
 	
+	var _Frameset = __webpack_require__(17);
+	
+	var _Frameset2 = _interopRequireDefault(_Frameset);
+	
+	var _Keyframe = __webpack_require__(18);
+	
+	var _Keyframe2 = _interopRequireDefault(_Keyframe);
+	
+	var _Camera = __webpack_require__(16);
+	
 	var _FileFormat = __webpack_require__(1);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -539,13 +563,35 @@
 	
 	      return endTime;
 	    }
+	  }, {
+	    key: "createCameraLayer",
+	    value: function createCameraLayer() {
+	      var camera = new _Camera.Camera();
+	      var layer = new _Layer2.default();
+	      var frameset = new _Frameset2.default();
+	
+	      layer.name = "Camera";
+	      layer.timelineColor = [255, 70, 120, 255];
+	      layer.data = camera;
+	
+	      frameset.keyframes.push(new _Keyframe2.default(0, camera.createRefState()));
+	      frameset.keyframes.push(new _Keyframe2.default(this.getEndTime(), camera.createRefState()));
+	      layer.framesets.push(frameset);
+	
+	      return layer;
+	    }
 	  }], [{
 	    key: "read",
 	    value: function read(reader, version) {
 	      var project = new Project();
+	
 	      project.layers = (0, _FileFormat.TisfatReadList)(reader, version, _Layer2.default.read);
+	      console.log(project.layers.map(function (l) {
+	        return l.name;
+	      }));
 	
 	      if (version < 6) {
+	        project.layers.unshift(project.createCameraLayer());
 	        /* Camera camera = new Camera();
 	        Layers.Insert(0, camera.CreateDefaultLayer(0, (uint)Program.MainTimeline.GetLastTime(), null)); */
 	      }
@@ -587,7 +633,7 @@
 	
 	var _EntityIDs = __webpack_require__(6);
 	
-	var _Frameset = __webpack_require__(16);
+	var _Frameset = __webpack_require__(17);
 	
 	var _Frameset2 = _interopRequireDefault(_Frameset);
 	
@@ -602,6 +648,7 @@
 	    this.name = "Layer";
 	    this.visible = true;
 	    this.timelineColor = "aliceblue";
+	    this.data = null;
 	    this.framesets = [];
 	    this.depth = 0;
 	  }
@@ -698,47 +745,46 @@
 	
 	var _StickFigure = __webpack_require__(7);
 	
-	var _LineObject = __webpack_require__(10);
+	var _BitmapObject = __webpack_require__(10);
 	
-	var _RectObject = __webpack_require__(11);
+	var _LineObject = __webpack_require__(11);
 	
-	var _CircleObject = __webpack_require__(12);
+	var _RectObject = __webpack_require__(12);
 	
-	var _PolyObject = __webpack_require__(13);
+	var _CircleObject = __webpack_require__(13);
 	
-	var _TextObject = __webpack_require__(14);
+	var _PolyObject = __webpack_require__(14);
 	
-	var _Camera = __webpack_require__(15);
+	var _TextObject = __webpack_require__(15);
 	
-	// import {BitmapObject, BitmapObjectState} from "../Entities/BitmapObject.js";
+	var _Camera = __webpack_require__(16);
+	
 	// import {PointLight, PointLightState} from "../Entities/PointLight.js";
 	
 	
 	var TisfatEntityTypes = {
-	  "0": _StickFigure.StickFigure,
-	  // "1": BitmapObject,
+	  "0": /* CustomFigure */_StickFigure.StickFigure,
+	  "1": _BitmapObject.BitmapObject,
 	  // "2": PointLight,
 	  "3": _LineObject.LineObject,
 	  "4": _RectObject.RectObject,
 	  "5": _CircleObject.CircleObject,
 	  "6": _PolyObject.PolyObject,
 	  "7": _TextObject.TextObject,
-	  // "8": CustomFigure,
+	  "8": _StickFigure.StickFigure,
 	  "9": _Camera.Camera
 	};
-	// import {CustomFigure, CustomFigureState} from "../Entities/CustomFigure.js";
-	
 	
 	var TisfatEntityStateTypes = {
-	  "0": _StickFigure.StickFigureState,
-	  // "1": BitmapObjectState,
+	  "0": /* CustomFigureState */_StickFigure.StickFigureState,
+	  "1": _BitmapObject.BitmapObjectState,
 	  // "2": PointLightState,
 	  "3": _LineObject.LineObjectState,
 	  "4": _RectObject.RectObjectState,
 	  "5": _CircleObject.CircleObjectState,
 	  "6": _PolyObject.PolyObjectState,
 	  "7": _TextObject.TextObjectState,
-	  // "8": CustomFigureState,
+	  "8": _StickFigure.StickFigureState,
 	  "9": _Camera.CameraState
 	};
 	
@@ -1019,7 +1065,7 @@
 	          // ???
 	        }
 	
-	        this.initialBitmapIndex = reader.ReadInt32();
+	        joint.initialBitmapIndex = reader.ReadInt32();
 	      }
 	
 	      return joint;
@@ -1124,11 +1170,99 @@
 	}
 	
 	function InterpolateColor(t, a, b, mode) {
-	  return [Interpolate(t, a[0], b[0], mode), Interpolate(t, a[1], b[1], mode), Interpolate(t, a[2], b[2], mode), Interpolate(t, a[3], b[3], mode)];
+	  return [Math.max(Math.min(Interpolate(t, a[0], b[0], mode), 255), 0), Math.max(Math.min(Interpolate(t, a[1], b[1], mode), 255), 0), Math.max(Math.min(Interpolate(t, a[2], b[2], mode), 255), 0), Math.max(Math.min(Interpolate(t, a[3], b[3], mode), 255), 0)];
 	}
 
 /***/ },
 /* 10 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.BitmapObjectState = exports.BitmapObject = undefined;
+	
+	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _FileFormat = __webpack_require__(1);
+	
+	var _Interpolation = __webpack_require__(9);
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	var BitmapObject = exports.BitmapObject = function () {
+	  function BitmapObject() {
+	    _classCallCheck(this, BitmapObject);
+	  }
+	
+	  _createClass(BitmapObject, [{
+	    key: "interpolate",
+	    value: function interpolate(t, current, target, mode) {
+	      var state = new BitmapObjectState();
+	      state.location = (0, _Interpolation.InterpolatePointF)(t, current.location, target.location, mode);
+	      state.size = (0, _Interpolation.InterpolatePointF)(t, current.size, target.size, mode);
+	      state.rotation = (0, _Interpolation.Interpolate)(t, current.rotation, target.rotation, mode);
+	      state.alpha = (0, _Interpolation.Interpolate)(t, current.alpha, target.alpha, mode);
+	      return state;
+	    }
+	  }, {
+	    key: "draw",
+	    value: function draw(ctx, state) {
+	      var _state$location = _slicedToArray(state.location, 2);
+	
+	      var x = _state$location[0];
+	      var y = _state$location[1];
+	
+	      var _state$size = _slicedToArray(state.size, 2);
+	
+	      var width = _state$size[0];
+	      var height = _state$size[1];
+	      // TODO: alpha and rotation
+	
+	      ctx.drawImage(this.bitmap, x, y, width, height);
+	    }
+	  }], [{
+	    key: "read",
+	    value: function read(reader, version) {
+	      var object = new BitmapObject();
+	      object.bitmap = (0, _FileFormat.TisfatReadBitmap)(reader, version);
+	      return object;
+	    }
+	  }]);
+	
+	  return BitmapObject;
+	}();
+	
+	var BitmapObjectState = exports.BitmapObjectState = function () {
+	  function BitmapObjectState() {
+	    _classCallCheck(this, BitmapObjectState);
+	  }
+	
+	  _createClass(BitmapObjectState, null, [{
+	    key: "read",
+	    value: function read(reader, version) {
+	      var state = new BitmapObjectState();
+	      state.location = (0, _FileFormat.TisfatReadPointF)(reader, version);
+	      state.size = (0, _FileFormat.TisfatReadPointF)(reader, version);
+	      var width = reader.ReadDouble();
+	      var height = reader.ReadDouble();
+	      state.rotation = reader.ReadDouble();
+	
+	      if (version >= 5) state.alpha = reader.ReadInt32();else state.alpha = 255;
+	
+	      return state;
+	    }
+	  }]);
+	
+	  return BitmapObjectState;
+	}();
+
+/***/ },
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -1199,7 +1333,7 @@
 	}();
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -1267,7 +1401,7 @@
 	}();
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -1331,7 +1465,7 @@
 	}();
 
 /***/ },
-/* 13 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -1451,7 +1585,7 @@
 	}();
 
 /***/ },
-/* 14 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -1547,6 +1681,7 @@
 	      var fontSize = reader.ReadDouble();
 	      var fontStyle = reader.ReadString(); // ReadInt32
 	      state.textFont = FontStyleMap[fontStyle] + " " + fontSize + "px " + fontName;
+	      if (version > 7) state.textColor = (0, _FileFormat.TisfatReadColor)(reader, version);else state.textColor = [255, 0, 0, 0];
 	      return state;
 	    }
 	  }]);
@@ -1555,7 +1690,7 @@
 	}();
 
 /***/ },
-/* 15 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -1563,7 +1698,7 @@
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.CameraState = exports.Camera = undefined;
+	exports.Camera = exports.CameraState = undefined;
 	
 	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 	
@@ -1574,6 +1709,25 @@
 	var _Interpolation = __webpack_require__(9);
 	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	var CameraState = exports.CameraState = function () {
+	  function CameraState() {
+	    _classCallCheck(this, CameraState);
+	  }
+	
+	  _createClass(CameraState, null, [{
+	    key: "read",
+	    value: function read(reader, version) {
+	      var state = new CameraState();
+	      state.location = (0, _FileFormat.TisfatReadPointF)(reader, version);
+	      state.scale = reader.ReadDouble();
+	      state.angle = reader.ReadDouble();
+	      return state;
+	    }
+	  }]);
+	
+	  return CameraState;
+	}();
 	
 	var Camera = exports.Camera = function () {
 	  function Camera() {
@@ -1606,6 +1760,15 @@
 	      ctx.scale(inv, inv);
 	      ctx.rotate(state.angle);
 	    }
+	  }, {
+	    key: "createRefState",
+	    value: function createRefState() {
+	      var state = new CameraState();
+	      state.location = [0, 0];
+	      state.scale = 1;
+	      state.angle = 0;
+	      return state;
+	    }
 	  }], [{
 	    key: "read",
 	    value: function read() {
@@ -1615,26 +1778,9 @@
 	
 	  return Camera;
 	}();
-	
-	var CameraState = exports.CameraState = function () {
-	  function CameraState() {
-	    _classCallCheck(this, CameraState);
-	  }
-	
-	  _createClass(CameraState, null, [{
-	    key: "read",
-	    value: function read(reader, version) {
-	      this.location = (0, _FileFormat.TisfatReadPointF)(reader, version);
-	      this.scale = reader.ReadDouble();
-	      this.angle = reader.ReadDouble();
-	    }
-	  }]);
-	
-	  return CameraState;
-	}();
 
 /***/ },
-/* 16 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -1645,7 +1791,7 @@
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
-	var _Keyframe = __webpack_require__(17);
+	var _Keyframe = __webpack_require__(18);
 	
 	var _Keyframe2 = _interopRequireDefault(_Keyframe);
 	
@@ -1687,7 +1833,7 @@
 	exports.default = Frameset;
 
 /***/ },
-/* 17 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -1704,11 +1850,15 @@
 	
 	var Keyframe = function () {
 	  function Keyframe() {
+	    var time = arguments.length <= 0 || arguments[0] === undefined ? 0 : arguments[0];
+	    var state = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
+	    var interpMode = arguments.length <= 2 || arguments[2] === undefined ? "Linear" : arguments[2];
+	
 	    _classCallCheck(this, Keyframe);
 	
-	    this.time = 0;
-	    this.state = null;
-	    this.interpMode = "Linear";
+	    this.time = time;
+	    this.state = state;
+	    this.interpMode = interpMode;
 	  }
 	
 	  _createClass(Keyframe, null, [{

@@ -56,9 +56,9 @@ export function InterpolatePointF(t, a, b, mode) {
 
 export function InterpolateColor(t, a, b, mode) {
   return [
-    Interpolate(t, a[0], b[0], mode),
-    Interpolate(t, a[1], b[1], mode),
-    Interpolate(t, a[2], b[2], mode),
-    Interpolate(t, a[3], b[3], mode)
+    Math.max(Math.min(Interpolate(t, a[0], b[0], mode), 255), 0),
+    Math.max(Math.min(Interpolate(t, a[1], b[1], mode), 255), 0),
+    Math.max(Math.min(Interpolate(t, a[2], b[2], mode), 255), 0),
+    Math.max(Math.min(Interpolate(t, a[3], b[3], mode), 255), 0)
   ];
 }
