@@ -22,8 +22,10 @@ export class BitmapObject {
   draw(ctx, state) {
     const [x, y] = state.location;
     const [width, height] = state.size;
-    // TODO: alpha and rotation
+    // TODO: rotation
+    ctx.globalAlpha = state.alpha;
     ctx.drawImage(this.bitmap, x, y, width, height);
+    ctx.globalAlpha = 1;
   }
 }
 
@@ -37,9 +39,9 @@ export class BitmapObjectState {
     state.rotation = reader.ReadDouble();
 
     if (version >= 5)
-      state.alpha = reader.ReadInt32();
+      state.alpha = reader.ReadInt32() / 255;
     else
-      state.alpha = 255;
+      state.alpha = 1;
 
     return state;
   }
